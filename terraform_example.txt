@@ -1,5 +1,25 @@
+==========================================
+
+
+
+
+
+
+=====================================================
+Launch ec2 instance using launch template
+
+
+resource "aws_instance" "myapp" {
+  ami                     = "${var.ami}"
+  instance_type           = "${var.instance_type}"
+  key_name                = "${var.key_name}"
+  user_data_base64        = "${base64encode(data.template_file.user-data.rendered)}"
+  iam_instance_profile    = "${var.iam_instance_profile}"
+  monitoring              = "${var.enable_monitoring}"
+  
   launch_template = {
     id      = "${aws_launch_template.app.id}"
     version = "${aws_launch_template.version}"
   }
 }
+=======================================================
