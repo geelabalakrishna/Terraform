@@ -1,6 +1,6 @@
 # Terraform
 
-https://developer.hashicorp.com/terraform/install
+#terraform-install https://developer.hashicorp.com/terraform/install
 
 
 #how-to-use-terraform-variables
