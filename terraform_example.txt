@@ -1,0 +1,5 @@
+  launch_template = {
+    id      = "${aws_launch_template.app.id}"
+    version = "${aws_launch_template.version}"
+  }
+}
