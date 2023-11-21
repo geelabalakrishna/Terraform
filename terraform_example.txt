@@ -1,9 +1,112 @@
 ==========================================
 
+resource "aws_default_vpc" "default" {
+  tags = {
+    Name = "Default VPC"
+  }
+}
 
 
 
 
+
+
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+  instance_tenancy = "default"
+  enable_dns_support = true
+  enable_dns_hostnames = true
+  tags = {
+    Name = "main"
+  }
+}
+
+resource "aws_subnet" "main" {
+  vpc_id     = aws_vpc.main.id
+  cidr_block = "10.0.1.0/24"
+  map_public_ip_on_launch = true
+  availability_zone = "us-east-1a"
+  tags = {
+    Name = "Main"
+  }
+}
+
+
+resource "aws_internet_gateway" "gw" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "main"
+  }
+}
+
+resource "aws_key_pair" "deployer" {
+  key_name   = "deployer-key"
+  public_key = "email@example.com"
+}
+
+
+resource "aws_security_group" "allow_tls" {
+  name        = "allow_tls"
+  description = "Allow TLS inbound traffic"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description      = "TLS from VPC"
+    from_port        = 443
+    to_port          = 443
+    protocol         = "tcp"
+    cidr_blocks      = [aws_vpc.main.cidr_block]
+    ipv6_cidr_blocks = [aws_vpc.main.ipv6_cidr_block]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  tags = {
+    Name = "allow_tls"
+  }
+}
+
+
+
+resource "aws_security_group_rule" "example" {
+  type              = "ingress"
+  from_port         = 0
+  to_port           = 65535
+  protocol          = "tcp"
+  cidr_blocks       = [aws_vpc.example.cidr_block]
+  ipv6_cidr_blocks  = [aws_vpc.example.ipv6_cidr_block]
+  security_group_id = "sg-123456"
+}
+
+
+
+resource "aws_eip" "lb" {
+  instance = aws_instance.web.id
+  domain   = "vpc"
+}
+
+How do I attach an elastic IP upon creation of a network load balancer with Terraform?
+
+resource "aws_eip" "lb" {
+  vpc = true
+}
+
+resource "aws_lb" "network" {
+  name               = "test-lb-tf"
+  load_balancer_type = "network"
+
+  subnet_mapping {
+    subnet_id     = "${var.subnet_id}"
+    allocation_id = "${aws_eip.lb.id}"
+  }
+}
 
 =====================================================
 Launch ec2 instance using launch template
