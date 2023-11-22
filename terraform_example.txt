@@ -393,7 +393,7 @@ provider "aws" {
 locals {
    common_tag = {
      Name = "UK-Project"
-     Owner = "Rajesh Singh"
+     Owner = "Bala"
   }
 }
 resource "aws_instance" "web" {
