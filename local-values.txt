@@ -16,6 +16,16 @@ locals {
   }
 }
 
+resource "aws_instance" "example" {
+  # ...
+
+  tags = local.common_tags
+}
+
+
+
+
+
 resource "aws_vpc" "example" {
   # ... other configuration ...
 
