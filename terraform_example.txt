@@ -151,7 +151,348 @@ resource "aws_instance" "server" {
     Name = "Server ${count.index}"
   }
 }
+==============================================================================================
+provider "aws" {
+  region     = "us-east-1"
+  access_key = "AKIAZ5PLBQBR4KZ3NH52"
+  secret_key = "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"
+}
 
+
+resource "aws_instance" "mycloudserver" {
+  ami           = "ami-033b95fb8079dc481"
+  instance_type = "t2.micro"
+  key_name      = "terraform-key"
+  vpc_security_group_ids = [aws_security_group.mycloudsg.id]
+ tags = {
+    Name = "mycloudserver"
+  }
+}
+
+resource "aws_key_pair" "terraform-key" {
+  key_name   = "terraform-key"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCloJOL1pBBgqHi87RI2l01tTnaX7d6rxW9Lx5Ih9xquFjB8k9izOk6SahltoZwDjX1HsR1rfz7Z0n3gQ3aZxMWIT0mbaD+NN+bITH0YNxRcLQkTgtbMTFYOBNcjKtzWOY2N+vJUiiSb6c3zhu2YtCftgZ0nzqir6m+h0z7TQAyASbkSWa1x70AkpKTCQstxhWIwcl/C2RxSL5VLpPIEFAEzhJEh53cUFMslk2clv93Jijh8X0l/cU3odQibIpF1irUrcdztOFN9tZVLWdCfZ0p5mFZKOOFX/+ByTT2pTmOZEtse+7/gqmRkcyQeT4LPZaeav4ricGA4C0M2qo5WoPf root@ip-172-31-94-163.ec2.internal"
+}
+
+resource "aws_eip" "mycloudservereip" {
+  instance = aws_instance.mycloudserver.id
+  vpc      = true
+}
+resource "aws_default_vpc" "default" {
+  tags = {
+    Name = "Default VPC"
+  }
+}
+
+resource "aws_security_group" "mycloudsg" {
+  name        = "mycloudsg"
+  description = "Allow TLS inbound traffic"
+  vpc_id      = aws_default_vpc.default.id
+
+  ingress {
+    description      = "TLS from VPC"
+    from_port        = 443
+    to_port          = 443
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  tags = {
+    Name = "allow_tls"
+  }
+}
+========================================================================================================================
+provider "aws" {
+  region     = "us-east-1"
+  access_key = "AKIAZ5PLBQBRYVYNCREC"
+  secret_key = "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"
+}
+
+variable "instancetype" {
+    default = "t2.micro"
+}
+
+variable "image" {
+    default = "ami-033b95fb8079dc481"
+}
+
+resource "aws_instance" "mycloudserver-1" {
+  ami           = var.image
+  instance_type = var.instancetype
+
+  tags = {
+    Name = "mycloudserver-1"
+  }
+}
+
+
+resource "aws_instance" "mycloudserver-2" {
+  ami          = var.image
+  instance_type = var.instancetype
+
+  tags = {
+    Name = "mycloudserver-2"
+  }
+}
+======================================================================================================================
+provider "aws" {
+  region     = "us-east-1"
+  access_key = "AKIAZ5PLBQBR6S5MMXPU"
+  secret_key = "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"
+}
+
+variable "elbname" {
+  type = string
+}
+
+variable "azname" {
+  type = list
+  default = ["us-east-1a","us-east-1b","us-east-1c"]
+}
+
+variable "timeout" {
+ type = number
+}
+
+resource "aws_elb" "bar" {
+  name               = var.elbname
+  availability_zones = var.azname
+
+  listener {
+    instance_port     = 8000
+    instance_protocol = "http"
+    lb_port           = 80
+    lb_protocol       = "http"
+  }
+
+  health_check {
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    timeout             = 3
+    target              = "HTTP:8000/"
+    interval            = 30
+  }
+
+  cross_zone_load_balancing   = true
+  idle_timeout                = var.timeout
+  connection_draining         = true
+  connection_draining_timeout = var.timeout
+
+  tags = {
+    Name = "mycloudelb"
+  }
+}
+
+variable "instancetype" {
+ type = list
+ default = ["t2.micro","t2.small","t2.nano","dev","qa","prod"]
+}
+
+resource aws_instance "dev-team" {
+ ami = "ami-033b95fb8079dc481"
+ instance_type = var.instancetype[0]
+tags = {
+ Name = var.instancetype[3]
+}
+}
+
+resource aws_instance "QA-team" {
+ ami = "ami-033b95fb8079dc481"
+ instance_type = var.instancetype[1]
+tags = {
+ Name = var.instancetype[4]
+}
+}
+
+resource aws_instance "prod-team" {
+ ami = "ami-033b95fb8079dc481"
+ instance_type = var.instancetype[2]
+tags = {
+ Name = var.instancetype[5]
+}
+}
+===============================================================================================================
+provider "aws" {
+  region     = "us-east-1"
+  access_key = "AKIAZ5PLBQBR6S5MMXPU"
+  secret_key = "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"
+}
+
+resource "aws_instance" "mycloudserver" {
+  ami           = "ami-033b95fb8079dc481"
+  instance_type = "t2.micro"
+  count = 3
+ tags = {
+   Name = "dev.${count.index}"
+}
+}
+-----------------------------------------------------------------------------------------------------------------
+provider "aws" {
+  region     = "us-east-1"
+  access_key = "AKIAZ5PLBQBR6S5MMXPU"
+  secret_key = "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"
+}
+variable "instancetag" {
+  type = list
+  default = ["Dev-Dep","Test-Dep","Prod-Dep"]
+}
+
+resource "aws_instance" "mycloudserver" {
+  ami           = "ami-033b95fb8079dc481"
+  instance_type = "t2.micro"
+  count = 3
+ tags = {
+   Name = var.instancetag[count.index]
+}
+}
+------------------------------------------------------------------------------------
+provider "aws" {
+  region     = "us-east-1"
+  access_key = "AKIAZ5PLBQBR6S5MMXPU"
+  secret_key = "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"
+}
+variable "instancetag" {
+  type = list
+  default = ["Dev-Dep","Test-Dep","Prod-Dep"]
+}
+
+variable "instancetype" {
+  type = list
+  default = ["t2.nano","t2.small","t2.micro"]
+}
+
+resource "aws_instance" "mycloudserver" {
+  ami           = "ami-033b95fb8079dc481"
+  instance_type = var.instancetype[count.index]
+  count = 3
+ tags = {
+   Name = var.instancetag[count.index]
+}
+}
+
+=================================================================================================================================
+local value
+
+
+
+
+provider "aws" {
+  region     = "us-east-1"
+  access_key = "AKIAZ5PLBQBR6S5MMXPU"
+  secret_key = "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"
+}
+
+locals {
+   common_tag = {
+     Name = "UK-Project"
+     Owner = "Rajesh Singh"
+  }
+}
+resource "aws_instance" "web" {
+  ami           = ""
+  instance_type = "t2.micro"
+  tags          = local.common_tag
+}
+
+
+resource "aws_vpc" "main" {
+  cidr_block       = "10.0.0.0/16"
+  instance_tenancy = "default"
+  tags             = local.common_tag
+}
+
+resource "aws_ebs_volume" "example" {
+  availability_zone = "us-east-1a"
+  size              = 10
+  tags              = local.common_tag
+}
+============================================================================================================
+set noerrorbells
+set vb t_vb=
+
+count -
+
+provider "aws" {
+  region     = "us-east-1"
+  access_key = "AKIAZ5PLBQBR4O62BPBC"
+  secret_key = "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"
+}
+
+variable "instancetag" {
+ type = list
+ default = ["DEV-Dept","Test-Dept","Prod-Dept"]
+}
+
+resource "aws_instance" "dev" {
+  instance_type = "t2.micro"
+  ami           = "ami-033b95fb8079dc481"
+  count = 3
+  tags = {
+    Name = var.instancetag[count.index]
+ }
+}
+
+
+
+==============================================================================================================
+provider "aws" {
+  region     = "us-east-1"
+  access_key = "AKIAZ5PLBQBR4O62BPBC"
+  secret_key = "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"
+}
+
+variable instancetype {
+  type = map
+  default = {
+    "dev" = "t2.nano",
+    "test" = "t2.small",
+    "prod" = "t2.micro"
+   }
+}
+
+
+variable image {
+  type = list
+  default = ["ami-048ff3da02834afdc","ami-04505e74c0741db8d","ami-0e472ba40eb589f49"]
+}
+
+variable input {
+}
+
+resource "aws_instance" "dev" {
+  instance_type = var.instancetype["dev"]
+  ami = var.image[0]
+  count = var.input == "dev" ? 1 : 0
+  tags = {
+   Name = "Dev-Department"
+ }
+}
+
+resource "aws_instance" "test" {
+  instance_type = var.instancetype["test"]
+  ami = var.image[1]
+  count = var.input == "test" ? 2 : 0
+  tags = {
+   Name = "Test-Department"
+ }
+}
+
+resource "aws_instance" "prod" {
+  instance_type = var.instancetype["prod"]
+  ami = var.image[2]
+  count = var.input == "prod" ? 3 : 0
+  tags = {
+   Name = "Prod-Department"
+ }
+}
 
 
 
