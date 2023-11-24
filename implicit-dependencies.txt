@@ -1,0 +1,45 @@
+https://developer.hashicorp.com/terraform/tutorials/configuration-language/dependencies#manage-implicit-dependencies
+
+
+The most common source of dependencies is an implicit dependency between two resources or modules.
+
+provider "aws" {
+  region = var.aws_region
+}
+
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+}
+
+resource "aws_instance" "example_a" {
+  ami           = data.aws_ami.amazon_linux.id
+  instance_type = "t2.micro"
+}
+
+resource "aws_instance" "example_b" {
+  ami           = data.aws_ami.amazon_linux.id
+  instance_type = "t2.micro"
+}
+
+resource "aws_eip" "ip" {
+  vpc      = true
+  instance = aws_instance.example_a.id
+
+erraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+
+
+Manage explicit dependencies
+
+
+Implicit dependencies are the primary way that Terraform understands the relationships between your resources. 
+Sometimes there are dependencies between resources that are not visible to Terraform, however.
+The depends_on argument is accepted by any resource or module block and accepts a list of resources to create explicit dependencies for.
+
+
