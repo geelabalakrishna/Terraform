@@ -4,3 +4,6 @@
 
 ![image](https://github.com/geelabalakrishna/Terraform/assets/70707659/53cdf84a-6c0a-41f0-bb4d-434ca7ac86f4)
 
+![image](https://github.com/geelabalakrishna/Terraform/assets/70707659/f2581618-f2fd-4587-be0b-7ffbb708b3c0)
+
+
